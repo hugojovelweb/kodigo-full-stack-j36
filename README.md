@@ -52,3 +52,9 @@
 
 - PostgreSQL
 - MySQL
+
+### DevOps
+
+- Git
+- GitHub
+- Docker
