@@ -39,3 +39,5 @@
 - TypeScript
 
 ### Backend
+- Laravel
+- REST API
