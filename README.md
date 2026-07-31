@@ -41,3 +41,9 @@
 ### Backend
 - Laravel
 - REST API
+
+### Frontend
+
+- HTML5
+- CSS3
+- Next.js
