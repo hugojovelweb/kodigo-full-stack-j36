@@ -59,6 +59,32 @@
 - GitHub
 - Docker
 
+---
+
+# 👨‍💻 Author
+
+**Hugo Jovel**
+
+Software Developer
+
+- Java
+- Spring Boot
+- React
+- TypeScript
+- Laravel
+- AI Automations
+- Cloud Technologies
+
+GitHub:
+https://github.com/hugojovelweb
+
+Portfolio:
+https://www.hugojovelweb.tech
+
+---
+
+## ⭐ If you find this repository useful, consider giving it a Star.
+
 ### IDE
 
 - VS Code
