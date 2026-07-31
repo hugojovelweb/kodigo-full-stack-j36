@@ -28,5 +28,6 @@
 - CI/CD
 - DevOps
 - Cloud Deployment
-
 ---
+
+# 🛠 Tech Stack
