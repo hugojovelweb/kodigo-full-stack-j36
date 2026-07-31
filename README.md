@@ -31,3 +31,9 @@
 ---
 
 # 🛠 Tech Stack
+### Languages
+
+- SQL
+- PHP
+- JavaScript
+- TypeScript
