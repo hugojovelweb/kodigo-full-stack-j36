@@ -58,3 +58,10 @@
 - Git
 - GitHub
 - Docker
+
+### IDE
+
+- VS Code
+- IntelliJ IDEA
+
+---
