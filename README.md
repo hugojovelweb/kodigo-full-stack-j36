@@ -16,3 +16,17 @@
 - Procedures
 
 ## 🔄 Upcoming Modules
+- Software Engineering
+- PHP
+- Laravel
+- REST APIs
+- Authentication
+- TypeScript
+- Next.js
+- Testing
+- Docker
+- CI/CD
+- DevOps
+- Cloud Deployment
+
+---
