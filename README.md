@@ -47,3 +47,8 @@
 - HTML5
 - CSS3
 - Next.js
+
+### Databases
+
+- PostgreSQL
+- MySQL
