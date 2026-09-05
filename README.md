@@ -7,6 +7,7 @@
 - SQL Fundamentals
 - ER Models
 - Database Design
+-
 
 ## ✅ Module 2
 - Advanced SQL
