@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "La Buena Mesa - API de Menú",
+    "description": "Colección de ejemplos para probar la API RESTful de gestión del menú del restaurante La Buena Mesa (Laravel 12 + Eloquent).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "menu_item_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Listar elementos del menú",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/menu-items?per_page=15",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items"],
+          "query": [{ "key": "per_page", "value": "15" }]
+        }
+      }
+    },
+    {
+      "name": "Listar solo disponibles",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/menu-items?available=true",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items"],
+          "query": [{ "key": "available", "value": "true" }]
+        }
+      }
+    },
+    {
+      "name": "Obtener un elemento específico",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/menu-items/{{menu_item_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items", "{{menu_item_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Crear un elemento",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ceviche Mixto\",\n  \"description\": \"Pescado y mariscos frescos en leche de tigre.\",\n  \"price\": 16.90,\n  \"category\": \"Entradas\",\n  \"is_available\": true,\n  \"image_url\": \"https://picsum.photos/seed/ceviche/600/400\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/menu-items",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items"]
+        }
+      }
+    },
+    {
+      "name": "Actualizar un elemento (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ceviche Mixto Especial\",\n  \"description\": \"Pescado, camarón y pulpo en leche de tigre de rocoto.\",\n  \"price\": 18.50,\n  \"category\": \"Entradas\",\n  \"is_available\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/menu-items/{{menu_item_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items", "{{menu_item_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Actualizar parcialmente (PATCH)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"is_available\": false\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/menu-items/{{menu_item_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items", "{{menu_item_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Eliminar un elemento",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/menu-items/{{menu_item_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items", "{{menu_item_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Filtrar por categoría",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/menu-items/category/Postres",
+          "host": ["{{base_url}}"],
+          "path": ["menu-items", "category", "Postres"]
+        }
+      }
+    }
+  ]
+}
