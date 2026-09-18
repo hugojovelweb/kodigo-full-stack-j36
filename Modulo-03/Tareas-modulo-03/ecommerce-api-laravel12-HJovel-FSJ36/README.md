@@ -1,6 +1,6 @@
 # 🛒 API de E-commerce Segura con Swagger Completo
 
-# Hugo Ernesto Jovel Hernández - Full Stack Developer 36
+# Hugo Ernesto Jovel Hernández - Full Stack Developer - 36
 
 API RESTful desarrollada con **Laravel 12** y **PHP 8.2+** para la gestión de un e-commerce básico: clientes, catálogo de productos, órdenes de compra y procesamiento de pagos con **Stripe**. Documentada completamente con **Swagger/OpenAPI** (`l5-swagger`) y autenticación **JWT** (`tymon/jwt-auth`).
 
