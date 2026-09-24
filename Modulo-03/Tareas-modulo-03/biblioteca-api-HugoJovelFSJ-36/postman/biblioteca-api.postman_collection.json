@@ -1,0 +1,106 @@
+{
+  "info": {
+    "name": "Biblioteca API - JWT (KODIGO)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Bibliotecario Demo\",\n  \"email\": \"demo@biblioteca.test\",\n  \"password\": \"Secreta123!\",\n  \"password_confirmation\": \"Secreta123!\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"demo@biblioteca.test\",\n  \"password\": \"Secreta123!\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+      }
+    },
+    {
+      "name": "Auth - Me",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] }
+      }
+    },
+    {
+      "name": "Auth - Logout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+      }
+    },
+    {
+      "name": "Books - List",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/books", "host": ["{{base_url}}"], "path": ["books"] }
+      }
+    },
+    {
+      "name": "Books - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Cien anos de soledad\",\n  \"author\": \"Gabriel Garcia Marquez\",\n  \"isbn\": \"978-0307474728\",\n  \"genre\": \"Novela\",\n  \"published_year\": 1967,\n  \"copies_available\": 3\n}"
+        },
+        "url": { "raw": "{{base_url}}/books", "host": ["{{base_url}}"], "path": ["books"] }
+      }
+    },
+    {
+      "name": "Books - Show",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/books/1", "host": ["{{base_url}}"], "path": ["books", "1"] }
+      }
+    },
+    {
+      "name": "Books - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"copies_available\": 5\n}"
+        },
+        "url": { "raw": "{{base_url}}/books/1", "host": ["{{base_url}}"], "path": ["books", "1"] }
+      }
+    },
+    {
+      "name": "Books - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{base_url}}/books/1", "host": ["{{base_url}}"], "path": ["books", "1"] }
+      }
+    }
+  ]
+}
