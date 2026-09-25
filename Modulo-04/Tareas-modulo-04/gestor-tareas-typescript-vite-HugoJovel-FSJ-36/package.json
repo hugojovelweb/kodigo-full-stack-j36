@@ -1,0 +1,17 @@
+{
+  "name": "gestor-de-tareas-ts",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sistema de Gestion de Tareas funcional en TypeScript vanilla con Vite - Kodigo Full Stack Jr 36",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
