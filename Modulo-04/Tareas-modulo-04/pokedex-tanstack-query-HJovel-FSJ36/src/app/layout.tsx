@@ -37,8 +37,8 @@ export default function RootLayout({
           </p>
           <p>
             <strong>
-              © {new Date().getFullYear()} by Hugo Jovel Web. Derechos
-              reservados.
+              © {new Date().getFullYear()}
+               by Hugo Jovel Web. Derechos reservados.
             </strong>
           </p>
         </footer>
