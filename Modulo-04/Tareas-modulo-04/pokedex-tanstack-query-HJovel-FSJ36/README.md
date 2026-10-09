@@ -1,4 +1,5 @@
 # ⚡ Pokédex · Optimización de transferencia de datos con TanStack Query v5
+
 ### Hugo Ernesto Jovel Hernández  Full Stack Jr - 36
  
 Actividad práctica — Bootcamp **Kodigo Full Stack Jr 36**
