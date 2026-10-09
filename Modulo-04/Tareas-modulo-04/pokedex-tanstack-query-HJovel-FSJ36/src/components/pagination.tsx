@@ -4,10 +4,12 @@ import Link from "next/link";
 export function Pagination({
   page,
   totalPages,
-}: {
+}:
+ {
   page: number;
   totalPages: number;
-}) {
+}) 
+{
   const windowSize = 2;
   const start = Math.max(1, page - windowSize);
   const end = Math.min(totalPages, page + windowSize);
