@@ -6,8 +6,8 @@ Actividad práctica · **Kodigo Full Stack Jr 36** · *Implementar capas de segu
 
 Sistema de autenticación completo (registro, login, logout, recuperación de contraseña, perfil con base de datos) donde **el token de sesión nunca es accesible desde JavaScript del navegador**: vive únicamente en cookies `httpOnly` gestionadas por el servidor con `@supabase/ssr`, Server Actions y el *proxy* (middleware) de Next.js.
 
-- 🌐 **Producción:** `https://TU-APP.vercel.app` ← *(reemplaza con tu URL de Vercel)*
-- 📦 **Repositorio:** `https://github.com/TU-USUARIO/auth-httponly-nextjs-HJovel-FSJ36` ← *(reemplaza)*
+- 🌐 **Producción:** `https://TU-APP.vercel.app` 
+- 📦 **Repositorio:** `https://github.com/hugojovelweb/kodigo-full-stack-j36`
 
 ---
 
