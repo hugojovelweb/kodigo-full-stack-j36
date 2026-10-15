@@ -1,49 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
-type Probe = {
-  visibleCookies: string[];
-  storageKeys: string[];
-  clientSees: "sesión visible" | "sin sesión";
-};
+type Probe = { visibleCookies: string[]; storageKeys: string[] };
 
 /**
- * Prueba viva de la protección contra robo de token por XSS: ejecuta en el
+ * Prueba viva de la protección contra robo de sesión por XSS: ejecuta en el
  * navegador exactamente lo que ejecutaría un script malicioso.
  */
 export function SessionProbe() {
   const [probe, setProbe] = useState<Probe | null>(null);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      const visibleCookies = document.cookie
-        .split(";")
-        .map((c) => c.trim().split("=")[0] ?? "")
-        .filter(Boolean);
-      const storageKeys = [...Object.keys(localStorage), ...Object.keys(sessionStorage)];
-      const { data } = await createClient().auth.getSession();
-      if (alive) {
-        setProbe({
-          visibleCookies,
-          storageKeys,
-          clientSees: data.session ? "sesión visible" : "sin sesión",
-        });
-      }
-    })();
-    return () => {
-      alive = false;
-    };
+    const visibleCookies = document.cookie
+      .split(";")
+      .map((c) => c.trim().split("=")[0] ?? "")
+      .filter(Boolean);
+    const storageKeys = [...Object.keys(localStorage), ...Object.keys(sessionStorage)];
+    // Se difiere para que el estado no se actualice de forma síncrona dentro del efecto.
+    const id = requestAnimationFrame(() => setProbe({ visibleCookies, storageKeys }));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   if (!probe) return <p className="muted small">Ejecutando verificación en el navegador…</p>;
 
   const leaked =
-    probe.visibleCookies.some((c) => c.startsWith("sb-")) ||
-    probe.storageKeys.some((k) => k.toLowerCase().includes("supabase") || k.startsWith("sb-")) ||
-    probe.clientSees === "sesión visible";
+    probe.visibleCookies.some((c) => c === "sid" || c === "__Host-sid") ||
+    probe.storageKeys.some((k) => /token|session|sid|auth/i.test(k));
 
   return (
     <div className="stack">
@@ -57,8 +40,6 @@ export function SessionProbe() {
         <dd>{probe.visibleCookies.length ? probe.visibleCookies.join(", ") : "— ninguna —"}</dd>
         <dt>localStorage / sessionStorage</dt>
         <dd>{probe.storageKeys.length ? probe.storageKeys.join(", ") : "— vacío —"}</dd>
-        <dt>supabase.auth.getSession() en el cliente</dt>
-        <dd>{probe.clientSees}</dd>
       </dl>
     </div>
   );
