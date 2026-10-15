@@ -1,29 +1,23 @@
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/auth-forms";
 import { SessionProbe } from "@/components/session-probe";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth/dal";
+import { signOutEverywhereAction } from "@/lib/actions/auth";
 
 export const metadata = { title: "Dashboard" };
 
-const fmt = (iso?: string | null) =>
+const fmt = (iso?: string | Date | null) =>
   iso ? new Intl.DateTimeFormat("es-SV", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso)) : "—";
 
-export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ password?: string }> }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default async function DashboardPage() {
+  const session = await getSession();
   // Segunda línea de defensa: el proxy ya protege la ruta, pero cada página valida por sí misma.
-  if (!user) redirect("/login");
-
-  const { password } = await searchParams;
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  const displayName = profile?.display_name ?? (user.user_metadata?.display_name as string | undefined) ?? "";
+  if (!session) redirect("/login");
+  const { user, expiresAt } = session;
 
   return (
     <>
-      <h1>Hola{displayName ? `, ${displayName}` : ""} 👋</h1>
-      {password === "updated" && <p className="notice success" role="status">Tu contraseña fue actualizada.</p>}
+      <h1>Hola, {user.displayName} 👋</h1>
 
       <div className="grid two">
         <section className="card">
@@ -31,15 +25,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <dl className="kv">
             <dt>Correo</dt><dd>{user.email}</dd>
             <dt>ID de usuario</dt><dd className="mono">{user.id}</dd>
-            <dt>Correo confirmado</dt><dd>{user.email_confirmed_at ? "Sí" : "No"}</dd>
-            <dt>Cuenta creada</dt><dd>{fmt(user.created_at)}</dd>
-            <dt>Último acceso</dt><dd>{fmt(user.last_sign_in_at)}</dd>
+            <dt>Correo confirmado</dt><dd>{user.emailVerified ? "Sí" : "No"}</dd>
+            <dt>Cuenta creada</dt><dd>{fmt(user.createdAt)}</dd>
+            <dt>Sesión vence</dt><dd>{fmt(expiresAt)}</dd>
           </dl>
+          <form action={signOutEverywhereAction} style={{ marginTop: "1rem" }}>
+            <button className="btn ghost" type="submit">Cerrar sesión en todos los dispositivos</button>
+          </form>
         </section>
 
         <section className="card">
           <h2>Editar perfil</h2>
-          <ProfileForm displayName={displayName} />
+          <ProfileForm displayName={user.displayName} />
         </section>
       </div>
 
