@@ -1,4 +1,5 @@
 # 🔐 SecureAuth — Autenticación segura con cookies `httpOnly` en Next.js 16 + Neon Postgres
+### By Hugo Jovel Web
 
 Actividad práctica · **Kodigo Full Stack Jr 36** · *Implementar capas de seguridad a nivel de servidor y estrategias de posicionamiento orgánico para aplicaciones web profesionales.*
 
