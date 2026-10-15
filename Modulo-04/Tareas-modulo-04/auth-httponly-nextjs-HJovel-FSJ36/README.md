@@ -1,13 +1,13 @@
-# 🔐 SecureAuth — Autenticación segura con cookies `httpOnly` en Next.js 16 + Supabase
-
-# Alumno: Hugo Ernesto Jovel Hernánndez Kodigo Full Stack Jr - 36
+# 🔐 SecureAuth — Autenticación segura con cookies `httpOnly` en Next.js 16 + Neon Postgres
 
 Actividad práctica · **Kodigo Full Stack Jr 36** · *Implementar capas de seguridad a nivel de servidor y estrategias de posicionamiento orgánico para aplicaciones web profesionales.*
 
-Sistema de autenticación completo (registro, login, logout, recuperación de contraseña, perfil con base de datos) donde **el token de sesión nunca es accesible desde JavaScript del navegador**: vive únicamente en cookies `httpOnly` gestionadas por el servidor con `@supabase/ssr`, Server Actions y el *proxy* (middleware) de Next.js.
+Sistema de autenticación completo (registro, login, logout, verificación de correo, recuperación de contraseña, perfil) donde **el token de sesión nunca es accesible desde JavaScript del navegador**: vive únicamente en una cookie `httpOnly` emitida por el servidor mediante Server Actions y validada por el *proxy* (middleware) de Next.js contra **Neon Postgres**.
 
-- 🌐 **Producción:** `https://TU-APP.vercel.app` 
-- 📦 **Repositorio:** `https://github.com/hugojovelweb/kodigo-full-stack-j36`
+- 🌐 **Producción:** `https://TU-APP.vercel.app` ← *(reemplaza con tu URL)*
+- 📦 **Repositorio:** `https://github.com/TU-USUARIO/auth-httponly-nextjs-HJovel-FSJ36` ← *(reemplaza)*
+
+> **Nota sobre el stack:** el enunciado original pide Supabase. Este proyecto usa **Neon (PostgreSQL serverless)** con autenticación implementada a mano, cambio acordado con el bootcamp. Como Neon es solo base de datos, la sesión, el hash de contraseñas, los tokens y las cookies se implementan aquí de forma explícita (en lugar de delegarlos a `@supabase/ssr`). La tabla de la sección 2 muestra la equivalencia punto por punto.
 
 ---
 
@@ -17,209 +17,182 @@ Sistema de autenticación completo (registro, login, logout, recuperación de co
 |---|---|
 | Framework | Next.js **16+** (App Router, Turbopack) |
 | Lenguaje | TypeScript estricto (`strict`, `noUncheckedIndexedAccess`) |
-| Auth + DB | Supabase (Auth + PostgreSQL + RLS) vía `@supabase/ssr` |
+| Base de datos | **Neon** (PostgreSQL serverless) vía `@neondatabase/serverless` (consultas parametrizadas) |
+| Autenticación | Propia: sesiones en BD + cookie `httpOnly`, hash `scrypt` (módulo nativo de Node) |
 | Mutaciones | **Server Actions** (`"use server"`) |
 | Protección de rutas | `src/proxy.ts` (en Next 16 reemplaza a `middleware.ts`) |
 | Validación | `zod` (mismo esquema en cliente y servidor) |
-| Estilos | CSS plano (sin dependencias extra) |
+| Correo (opcional) | Resend (API REST, sin SDK) |
 
-> **Nota sobre `middleware` vs `proxy`:** desde Next.js 16 el archivo `middleware.ts` se renombró a `proxy.ts` (misma función: código que se ejecuta antes de cada petición). Esta app usa `src/proxy.ts`, y la lógica de Supabase vive en `src/lib/supabase/middleware.ts` (nombre usado en la documentación de Supabase). Si tu instructor exige literalmente el nombre `middleware.ts`, basta con renombrar `src/proxy.ts` → `src/middleware.ts` y la función exportada `proxy` → `middleware`; Next 16 aún lo soporta (con aviso de deprecación).
+> **`middleware` vs `proxy`:** desde Next.js 16 el archivo `middleware.ts` se llama `proxy.ts` (misma función: código que corre antes de cada petición). La lógica vive en `src/lib/auth/middleware.ts`. Si tu instructor exige el nombre literal, renombra `src/proxy.ts` → `src/middleware.ts` y la función `proxy` → `middleware` (Next 16 aún lo soporta con aviso de deprecación).
 
 ---
 
 ## 2. Cumplimiento de requisitos de la actividad
 
-| Requisito | Dónde está |
+| Requisito del enunciado | Equivalente en este proyecto |
 |---|---|
-| **a)** Supabase client para Server Components | `src/lib/supabase/server.ts` |
-| **a)** Supabase client para Client Components | `src/lib/supabase/client.ts` |
-| **a)** Cookies httpOnly con `@supabase/ssr` | `src/lib/supabase/cookie-options.ts` (+ `server.ts`, `middleware.ts`) |
-| **a)** Clients en middleware, server actions y route handlers | `middleware.ts` (proxy), `lib/actions/auth.ts`, `app/auth/confirm/route.ts`, `app/auth/signout/route.ts` |
+| **a)** Client para Server Components | `src/lib/db.ts` (cliente Neon `server-only`) + `src/lib/auth/dal.ts` (`getSession`/`getCurrentUser`) |
+| **a)** Client para Client Components | **Deliberadamente no existe un cliente de BD en el navegador**: los Client Components solo hablan con Server Actions. La cadena de conexión nunca llega al cliente (`server-only` rompe el build si se importa desde un componente cliente). |
+| **a)** Cookies httpOnly | `src/lib/auth/cookies.ts` (política única) + `src/lib/auth/session.ts` |
+| **a)** Clients en middleware, server actions y route handlers | `lib/auth/middleware.ts` (proxy), `lib/actions/auth.ts`, `app/auth/confirm/route.ts`, `app/auth/signout/route.ts` |
 | **b)** Registro con validación | `/registro` · `components/auth-forms.tsx` · `lib/validations/auth.ts` |
 | **b)** Inicio de sesión | `/login` |
-| **b)** Cierre de sesión | `signOutAction` (botón en el header) y `POST /auth/signout` |
-| **b)** Verificación de email | Plantilla + `GET /auth/confirm` (sección 5.3) |
-| **b)** Recuperación de contraseña | `/recuperar-contrasena` → correo → `/actualizar-contrasena` |
+| **b)** Cierre de sesión | `signOutAction` (header), `signOutEverywhereAction` (dashboard) y `POST /auth/signout` |
+| **b)** Verificación de email | Token de un solo uso por correo → `GET /auth/confirm` (se activa al configurar `RESEND_API_KEY`) |
+| **b)** Recuperación de contraseña | `/recuperar-contrasena` → correo → `/actualizar-contrasena?token=…` |
 | **c)** Server Actions registro/login/logout | `src/lib/actions/auth.ts` |
-| **c)** Errores de auth + validación en servidor + cookies | Mismo archivo (`zod` + mensajes genéricos + `createClient()` con cookies endurecidas) |
-| **d)** Middleware: rutas privadas, redirecciones, refresco de sesión | `src/proxy.ts` + `src/lib/supabase/middleware.ts` |
+| **c)** Errores + validación en servidor + cookies | Mismo archivo (`zod`, mensajes genéricos, `setSessionCookie`) |
+| **d)** Middleware: rutas privadas, redirecciones, refresco de sesión | `src/proxy.ts` + `src/lib/auth/middleware.ts` (sesión deslizante de 7 días) |
 | **e)** Dashboard privado con datos del usuario | `/dashboard` |
 | **e)** Layout con navegación condicional | `components/site-header.tsx` + `app/layout.tsx` |
-| **Seguridad** flags httpOnly/secure/sameSite | `cookie-options.ts` |
+| **Seguridad** flags httpOnly/secure/sameSite | `cookies.ts` |
 | **Seguridad** XSS | CSP con *nonce* (`proxy.ts`), escape de React, validación servidor, sin `dangerouslySetInnerHTML` |
 | **Seguridad** CSRF | `sameSite=lax`, verificación Origin/Host en Server Actions y en `POST /auth/signout` |
-| **Seguridad** sin tokens en localStorage / cookies legibles | Panel *Verificación de seguridad* en `/dashboard` lo demuestra en vivo |
+| **Seguridad** sin tokens en localStorage / cookies legibles | Panel *Verificación de seguridad* del dashboard lo demuestra en vivo |
 | **Seguridad** variables de entorno | `.env.example`, `src/lib/env.ts`, `.gitignore` |
-| **Buenas prácticas** clients separados / loading / errores / TS | Ver estructura (sección 3) |
 
 ---
 
-## 3. Estructura del proyecto
+## 3. Estructura
 
 ```
 auth-httponly-nextjs-HJovel-FSJ36/
-├── supabase/schema.sql              # Tabla profiles + RLS + trigger (ejecutar en Supabase)
+├── db/schema.sql                    # users, sessions, email_tokens, rate_limits
 ├── scripts/
+│   ├── db-migrate.mjs               # npm run db:migrate  (aplica db/schema.sql a Neon)
 │   ├── setup-debian.sh              # Preparación en Debian XFCE 13
 │   └── setup-windows.ps1            # Preparación en Windows (PowerShell)
 ├── src/
 │   ├── proxy.ts                     # "Middleware" Next 16: CSP con nonce + sesión + rutas
 │   ├── app/
-│   │   ├── layout.tsx               # Layout con navegación condicional
-│   │   ├── page.tsx                 # Inicio
+│   │   ├── layout.tsx · page.tsx
 │   │   ├── login/ registro/ recuperar-contrasena/ actualizar-contrasena/
 │   │   ├── dashboard/page.tsx       # Ruta privada
-│   │   └── auth/
-│   │       ├── confirm/route.ts     # Route Handler: canjea el enlace del correo
-│   │       ├── signout/route.ts     # Route Handler: logout por POST con check de Origin
-│   │       └── error/page.tsx
+│   │   └── auth/{confirm,signout}/route.ts · auth/error/page.tsx
 │   ├── components/                  # Formularios (useActionState), SessionProbe, header
-│   ├── lib/
-│   │   ├── supabase/
-│   │   │   ├── server.ts            # Client: Server Components / Actions / Route Handlers
-│   │   │   ├── client.ts            # Client: Client Components (sin acceso a la sesión)
-│   │   │   ├── middleware.ts        # Client: proxy (refresca sesión + protege rutas)
-│   │   │   └── cookie-options.ts    # httpOnly + secure + sameSite (política única)
-│   │   ├── actions/auth.ts          # Server Actions
-│   │   ├── validations/auth.ts      # Esquemas zod compartidos
-│   │   ├── safe-redirect.ts         # Anti open-redirect
-│   │   └── env.ts                   # Variables de entorno validadas
-│   └── types/database.ts            # Tipos de la base de datos
-├── .env.example
-├── next.config.ts                   # Cabeceras de seguridad + límites de Server Actions
-└── README.md
+│   └── lib/
+│       ├── db.ts                    # Cliente Neon (server-only)
+│       ├── env.ts                   # Variables de entorno validadas
+│       ├── email.ts                 # Envío con Resend (o log en desarrollo)
+│       ├── safe-redirect.ts         # Anti open-redirect
+│       ├── actions/auth.ts          # Server Actions
+│       ├── validations/auth.ts      # Esquemas zod compartidos
+│       └── auth/
+│           ├── cookies.ts           # httpOnly + secure + sameSite (+ prefijo __Host-)
+│           ├── session.ts           # Crear/validar/renovar/invalidar sesiones
+│           ├── dal.ts               # getSession / getCurrentUser (segunda barrera)
+│           ├── middleware.ts        # Lógica del proxy
+│           ├── password.ts          # scrypt + comparación en tiempo constante
+│           ├── tokens.ts            # Tokens aleatorios + SHA-256
+│           └── rate-limit.ts        # Límite de intentos en Neon
+├── .env.example · next.config.ts · README.md
 ```
 
 ---
 
 ## 4. Requisitos previos
 
-- **Node.js ≥ 20.9** (probado con 22; recomendado **24 LTS**), npm, Git.
-- Una cuenta gratuita en [Supabase](https://supabase.com), [GitHub](https://github.com) y [Vercel](https://vercel.com).
+- **Node.js ≥ 20.9** (recomendado **24 LTS**), npm y Git.
+- Cuentas gratuitas en [Neon](https://neon.com), [GitHub](https://github.com) y [Vercel](https://vercel.com). *(Opcional)* [Resend](https://resend.com) para correos reales.
 
 ---
 
-## 5. Configurar Supabase (una sola vez, común a Debian y Windows)
+## 5. Configurar Neon (una sola vez, común a Debian y Windows)
 
 ### 5.1 Crear el proyecto
-1. Supabase → **New project** → nombre `secureauth` (plan Free) → guarda la contraseña de la base de datos.
-2. **Project Settings → API** (o *Connect*): copia **Project URL** y la **Publishable key** (`sb_publishable_…`; en proyectos antiguos se llama *anon key*).
+1. [console.neon.tech](https://console.neon.tech) → **Create project**.
+2. Nombre `secureauth`, región más cercana (p. ej. *AWS US East*), versión de Postgres por defecto → **Create**.
+3. En el panel del proyecto pulsa **Connect**, deja *Pooled connection* activado y copia la **connection string**:
+   ```
+   postgresql://USUARIO:CLAVE@ep-xxxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require
+   ```
+   Es un **secreto**: se usa solo en `.env.local` y en las variables de Vercel.
 
-### 5.2 Crear tabla, RLS y trigger
-1. **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
-2. Verifica en **Table Editor** que existe `profiles` con el candado de **RLS activado**.
+### 5.2 Crear las tablas (elige una opción)
+- **Opción A — desde el proyecto** (después de configurar `.env.local`, sección 6/7): `npm run db:migrate`
+- **Opción B — desde Neon:** **SQL Editor** → pega el contenido de [`db/schema.sql`](db/schema.sql) → **Run**.
 
-### 5.3 Configurar Authentication
-1. **Authentication → Sign In / Providers → Email**: activa *Email* y deja **Confirm email** activado.
-2. **Authentication → URL Configuration**:
-   - **Site URL:** `http://localhost:3000` (cámbiala a tu URL de Vercel al desplegar).
-   - **Redirect URLs:** agrega `http://localhost:3000/**` y `https://TU-APP.vercel.app/**`.
-3. **Authentication → Email Templates** (para el flujo seguro `token_hash` del lado del servidor):
-   - **Confirm signup** → cambia el enlace por:
-     ```html
-     <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard">Confirmar mi correo</a>
-     ```
-   - **Reset Password** → cambia el enlace por:
-     ```html
-     <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/actualizar-contrasena">Restablecer contraseña</a>
-     ```
+Verifica en **Tables** que existen `users`, `sessions`, `email_tokens` y `rate_limits`.
 
-> El servidor de correo integrado de Supabase tiene un límite bajo de envíos por hora (pensado para pruebas). Si lo alcanzas, espera o configura un SMTP propio en *Authentication → SMTP Settings*. Para pruebas rápidas puedes desactivar temporalmente *Confirm email*.
+### 5.3 Correo (opcional, recomendado para producción)
+Sin `RESEND_API_KEY` la app funciona en **modo sin correo**: las cuentas nuevas quedan verificadas automáticamente y, en desarrollo, los enlaces de recuperación se imprimen en la terminal de `npm run dev`.
+Para correos reales: crea una API key en Resend y agrégala (sección 8). Con el dominio de prueba `onboarding@resend.dev`, Resend **solo entrega al correo dueño de la cuenta**; para enviar a cualquier usuario verifica un dominio propio y ajusta `EMAIL_FROM`.
+
+> Neon Free suspende el cómputo tras unos minutos sin uso: la **primera** petición después de un rato puede tardar un segundo extra. Es normal.
 
 ---
 
 ## 6. Instalación y ejecución en **Debian XFCE 13**
 
-> Todos los comandos se ejecutan en **Terminal Emulator (XFCE)**. Las rutas con espacios van entre comillas.
+> Comandos para la **Terminal** de XFCE (o la terminal integrada de VS Code). Las rutas con espacios van entre comillas.
 
 ### 6.1 Herramientas base (si aún no las tienes)
 ```bash
 sudo apt update
 sudo apt install -y git curl ca-certificates unzip build-essential
-git --version
-
-# Node.js 24 LTS con nvm (sin sudo, no ensucia el sistema)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 source ~/.bashrc
 nvm install 24
-node -v && npm -v          # debe mostrar v24.x y npm 11.x
+node -v && npm -v            # v24.x / npm 11.x
 ```
 
 ### 6.2 Obtener el proyecto
-**Opción A — desde el .zip descargado** (ajusta `Modulo-XX` a tu carpeta de trabajo):
 ```bash
 cd "$HOME/Projects/KODIGO /Full Stack Jr 36/kodigo-full-stack-j36/Modulo-XX/Tareas-modulo-XX"
 unzip ~/Descargas/auth-httponly-nextjs-HJovel-FSJ36.zip
 cd auth-httponly-nextjs-HJovel-FSJ36
 ```
-**Opción B — desde tu repositorio de GitHub:**
-```bash
-git clone https://github.com/TU-USUARIO/auth-httponly-nextjs-HJovel-FSJ36.git
-cd auth-httponly-nextjs-HJovel-FSJ36
-```
+*(Si ya tenías la versión anterior con Supabase en esa carpeta, renómbrala antes: `mv auth-httponly-nextjs-HJovel-FSJ36 auth-supabase-old`.)*
 
-### 6.3 Instalar y configurar
+### 6.3 Instalar, configurar y crear las tablas
 ```bash
 chmod +x scripts/setup-debian.sh
-./scripts/setup-debian.sh        # verifica Node, instala dependencias, crea .env.local, corre typecheck
-```
-Edita `.env.local` con tus datos de Supabase (sección 7):
-```bash
-nano .env.local                  # o:  code .env.local
+./scripts/setup-debian.sh        # verifica Node, instala dependencias, crea .env.local
+nano .env.local                  # pega tu DATABASE_URL de Neon (sección 8)
+npm run db:migrate               # crea las tablas en Neon
 ```
 
 ### 6.4 Ejecutar
 ```bash
-npm run dev                      # desarrollo → http://localhost:3000
-# Producción local (recomendado probar antes de desplegar):
+npm run dev                      # http://localhost:3000
+# Producción local (recomendado antes de desplegar):
 npm run build && npm run start
 ```
-Abre `http://localhost:3000` en Firefox/Chromium (XFCE: *Web Browser*).
-
-### 6.5 Calidad
 ```bash
-npm run typecheck                # TypeScript sin errores
-npm run lint                     # ESLint (eslint-config-next)
+npm run typecheck && npm run lint
 ```
 
 ---
 
-## 7. Instalación y ejecución en **Windows 10/11**
-
-> Usa **PowerShell** (no CMD). Para Git y Node puedes usar `winget` (incluido en Windows 11 y Windows 10 actualizado).
+## 7. Instalación y ejecución en **Windows 10/11** (PowerShell)
 
 ```powershell
-# 1) Herramientas (una sola vez; cierra y vuelve a abrir PowerShell al terminar)
 winget install Git.Git
 winget install OpenJS.NodeJS.LTS
-node -v ; npm -v ; git --version
-
-# 2) Entrar a la carpeta del proyecto (ZIP descomprimido o git clone)
+# cierra y abre PowerShell
 cd C:\ruta\a\auth-httponly-nextjs-HJovel-FSJ36
 
-# 3) Instalar + crear .env.local
 Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\setup-windows.ps1
-notepad .env.local              # completa las variables
-
-# 4) Ejecutar
-npm run dev                     # http://localhost:3000
+notepad .env.local               # pega tu DATABASE_URL de Neon
+npm run db:migrate
+npm run dev                      # http://localhost:3000
 ```
-Si PowerShell bloquea scripts, usa los comandos manuales: `npm install`, `Copy-Item .env.example .env.local`, `npm run dev`.
+Si PowerShell bloquea scripts: `npm install`, `Copy-Item .env.example .env.local`, `npm run db:migrate`, `npm run dev`.
 
 ---
 
 ## 8. Variables de entorno
 
-Copia `.env.example` → `.env.local` (este archivo **está en `.gitignore`**; nunca se sube a GitHub).
+Copia `.env.example` → `.env.local` (está en `.gitignore`; nunca se sube a GitHub).
 
-| Variable | Descripción |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto, p. ej. `https://abcd1234.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clave publicable `sb_publishable_…` (o la *anon key* en proyectos antiguos) |
-| `NEXT_PUBLIC_SITE_URL` | URL pública de la app, sin barra final. Local: `http://localhost:3000` |
-
-⚠️ **No uses** la clave `service_role` en este proyecto ni la expongas con el prefijo `NEXT_PUBLIC_`. La clave publicable es pública por diseño: la protección real de los datos la dan las **políticas RLS**.
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `DATABASE_URL` | Sí | Connection string **pooled** de Neon con `?sslmode=require`. **Secreto**, sin prefijo `NEXT_PUBLIC_`. |
+| `NEXT_PUBLIC_SITE_URL` | Sí | URL pública sin barra final. Local: `http://localhost:3000`. Producción: tu URL `https://`. |
+| `RESEND_API_KEY` | No | Activa correos reales y la **verificación de correo obligatoria**. |
+| `EMAIL_FROM` | No | Remitente, p. ej. `SecureAuth <onboarding@resend.dev>`. |
 
 Reinicia `npm run dev` cada vez que cambies `.env.local`.
 
@@ -227,67 +200,73 @@ Reinicia `npm run dev` cada vez que cambies `.env.local`.
 
 ## 9. Uso
 
-1. **Registro** → `/registro`: nombre, correo y contraseña (8+ caracteres, mayúscula, minúscula y número). Recibes un correo de confirmación.
-2. **Confirmar correo** → el enlace pasa por `/auth/confirm`, que crea la sesión (cookies `httpOnly`) y te lleva a `/dashboard`.
-3. **Login** → `/login`. Si ya estás autenticado, el proxy te redirige a `/dashboard`.
-4. **Dashboard** → datos de tu cuenta, edición de perfil (tabla `profiles` con RLS) y la **verificación de seguridad de sesión**.
-5. **Recuperar contraseña** → `/recuperar-contrasena` → correo → `/actualizar-contrasena`.
-6. **Cerrar sesión** → botón del header (Server Action: invalida el token en Supabase y borra las cookies).
+1. **Registro** → `/registro` (nombre, correo, contraseña de 8+ caracteres con mayúscula, minúscula y número).
+   - Con Resend configurado: llega un correo; al abrir el enlace el correo queda confirmado y luego inicias sesión.
+   - Sin Resend: la cuenta queda lista y entras directo al dashboard.
+2. **Login** → `/login`. Con sesión abierta, `/login` y `/registro` redirigen a `/dashboard`.
+3. **Dashboard** → datos de la cuenta, vencimiento de la sesión, edición de perfil y la **verificación de seguridad de la sesión**.
+4. **Recuperar contraseña** → `/recuperar-contrasena` → enlace (por correo, o en la terminal de `npm run dev` sin Resend) → `/actualizar-contrasena?token=…`. Al cambiarla se **cierran todas las sesiones** de esa cuenta.
+5. **Cerrar sesión** → botón del header, o *Cerrar sesión en todos los dispositivos* en el dashboard.
 
-Intentar abrir `/dashboard` sin sesión redirige a `/login?next=/dashboard`; tras iniciar sesión vuelves a la ruta solicitada (solo rutas internas: protección *open-redirect*).
+Abrir `/dashboard` sin sesión redirige a `/login?next=/dashboard`; tras iniciar sesión vuelves a esa ruta (solo rutas internas).
 
 ---
 
 ## 10. Seguridad: qué se hizo y por qué
 
-### Cookies `httpOnly`, `secure`, `sameSite`
-Por defecto `@supabase/ssr` **no** marca las cookies como `httpOnly` (para que el cliente de navegador pueda leerlas). Aquí se fuerzan en un único archivo (`cookie-options.ts`) y se aplican en los dos lugares donde el servidor escribe cookies: Server Components, Server Actions y Route Handlers (`server.ts`) y el proxy (`middleware.ts`):
+### Sesión y cookie `httpOnly`
+- Al iniciar sesión se genera un token aleatorio de **256 bits**. En la cookie viaja el token; en la base de datos solo su **hash SHA-256**: si la BD se filtrara, esos hashes no sirven para suplantar sesiones.
+- Cookie (`cookies.ts`):
 
 | Flag | Valor | Efecto |
 |---|---|---|
-| `httpOnly` | `true` | `document.cookie` no ve el token → un XSS no puede robarlo |
+| `httpOnly` | `true` | `document.cookie` no la ve → un XSS no puede robar la sesión |
 | `secure` | `true` en producción HTTPS | Solo viaja cifrada |
-| `sameSite` | `lax` | El navegador no envía la cookie en POST entre sitios → mitiga CSRF |
-| `path` | `/` | Disponible para toda la app |
+| `sameSite` | `lax` | No se envía en POST entre sitios → mitiga CSRF |
+| `path` + prefijo `__Host-` | `/` | En producción nadie puede fijarla desde un subdominio (*cookie tossing*) |
+| `expires` | 7 días, deslizante | El proxy la renueva cuando queda menos de la mitad de vida |
 
-Consecuencia consciente: el *browser client* **no puede ver la sesión**. Toda operación autenticada pasa por Server Actions (el panel *Verificación de seguridad* del dashboard lo demuestra ejecutando `document.cookie`, `localStorage` y `getSession()` en el navegador).
+- **Doble barrera:** el proxy valida la cookie contra la BD en cada petición y cada página/acción vuelve a validar con `getSession()` (DAL). La identidad nunca sale de campos del formulario.
+- El cierre de sesión **borra la fila en la base de datos** (no solo la cookie), y cambiar la contraseña cierra todas las sesiones.
 
-### Autenticación del lado del servidor
-- Se usa **`supabase.auth.getUser()`** (valida el JWT contra Supabase Auth) y **nunca** `getSession()` para decidir acceso.
-- La identidad en Server Actions sale de la sesión, **jamás** de campos del formulario.
-- El proxy refresca el token vencido en cada petición y reescribe las cookies.
+### Contraseñas
+- Hash **scrypt** (N=2¹⁷, r=8, p=1, salt aleatorio de 16 bytes), comparación con `timingSafeEqual`.
+- Si el correo no existe se ejecuta igualmente un hash de relleno: el login tarda lo mismo (evita enumeración por tiempo).
 
 ### XSS
 - **CSP con nonce por petición** (`proxy.ts`): `script-src 'self' 'nonce-…' 'strict-dynamic'`, `object-src 'none'`, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`.
-- React escapa todo el contenido; no se usa `dangerouslySetInnerHTML`.
-- Validación y normalización en servidor con `zod`; el nombre de perfil se limita a 2–60 caracteres (también con `CHECK` en la BD).
+- React escapa el contenido; sin `dangerouslySetInnerHTML`. Validación y normalización con `zod` en servidor.
 - Cabeceras extra: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
 
 ### CSRF
-- Cookies `sameSite=lax`.
-- Las **Server Actions** son solo `POST` y Next.js compara `Origin` con `Host`; además se declara `serverActions.allowedOrigins` desde `NEXT_PUBLIC_SITE_URL`.
-- El **Route Handler** `POST /auth/signout` (donde Next no protege automáticamente) verifica `Origin === Host` y responde `403` si no coincide.
+- `sameSite=lax`.
+- **Server Actions**: solo `POST`, Next compara `Origin` con `Host`; se declara además `serverActions.allowedOrigins`.
+- `POST /auth/signout` (Route Handler, donde Next no protege automáticamente) verifica `Origin === Host` → `403` si no coincide.
 
-### Otras medidas
-- **Anti-enumeración de usuarios:** login devuelve el mismo mensaje para "usuario inexistente" y "clave incorrecta"; recuperación y registro responden igual exista o no el correo.
-- **Mensajes de error informativos pero seguros:** nunca se muestran errores internos de Supabase.
-- **Open redirect:** el parámetro `next` solo acepta rutas internas (`safe-redirect.ts`).
-- **RLS:** `profiles` solo permite leer/insertar/editar la fila propia (`auth.uid() = id`).
-- **Trigger `SECURITY DEFINER`** con `search_path = ''` (práctica recomendada por Supabase).
-- Límite de cuerpo de Server Actions: 100 kb.
-- *Mejoras opcionales fuera del alcance:* CAPTCHA (Cloudflare Turnstile) en Supabase, límite de intentos propio, MFA.
+### Inyección SQL y datos
+- Todas las consultas usan plantillas etiquetadas del driver de Neon: los valores viajan como **parámetros**, nunca concatenados.
+- `CHECK` en la BD: correo en minúsculas y longitudes; `email` único.
+
+### Abuso y enumeración
+- **Límite de intentos** guardado en Neon (funciona en serverless): login 5 por 15 min por correo+IP, 30 por IP; registro y recuperación 5 por hora.
+- Mensajes **genéricos**: "Correo o contraseña incorrectos"; registro y recuperación responden igual exista o no el correo (con verificación activa).
+- Tokens de correo/recuperación: de un solo uso, hasheados en BD, vencen (24 h / 1 h). El enlace de recuperación consume el token con una única sentencia atómica (cambia clave + cierra sesiones).
+- **Open redirect:** `next` solo acepta rutas internas.
+
+*Mejoras opcionales fuera del alcance:* CAPTCHA (Turnstile), MFA/TOTP, auditoría de inicios de sesión.
 
 ---
 
-## 11. Verificar manualmente que las cookies son `httpOnly`
+## 11. Verificar manualmente que la cookie es `httpOnly`
 
-1. Inicia sesión en la app.
-2. Abre DevTools (`F12`) → **Application** (Chrome/Chromium) o **Storage** (Firefox) → **Cookies → `http://localhost:3000`**.
-3. Busca las cookies `sb-…-auth-token` (pueden venir en fragmentos `.0`, `.1`). Debe verse:
-   - ✅ **HttpOnly** marcado · **SameSite = Lax** · **Secure** marcado en producción HTTPS.
-4. En la pestaña **Console** ejecuta `document.cookie` → **no** debe aparecer ninguna cookie `sb-…`.
-5. **Local Storage / Session Storage** → deben estar vacíos de tokens.
-6. En **Network**, la respuesta de la página trae la cabecera `Content-Security-Policy` con un `nonce` distinto en cada recarga.
+1. Inicia sesión.
+2. DevTools (`F12`) → **Application** (Chromium) o **Storage** (Firefox) → **Cookies → `http://localhost:3000`**.
+3. Debe verse la cookie `sid` (en producción `__Host-sid`) con:
+   - ✅ **HttpOnly** · **SameSite = Lax** · **Secure** (en producción HTTPS) · Expires ≈ 7 días.
+4. **Console** → `document.cookie` → **no** debe aparecer `sid`.
+5. **Local/Session Storage** → vacíos de tokens.
+6. **Network** → la página trae `Content-Security-Policy` con un `nonce` distinto en cada recarga.
+7. Tras cerrar sesión, la fila desaparece de la tabla `sessions` (Neon → **Tables**).
 
 ---
 
@@ -296,36 +275,38 @@ Consecuencia consciente: el *browser client* **no puede ver la sesión**. Toda o
 | # | Caso | Resultado esperado |
 |---|---|---|
 | 1 | Abrir `/dashboard` sin sesión | Redirige a `/login?next=%2Fdashboard` |
-| 2 | Registro con contraseña débil / correos inválidos / claves distintas | Errores por campo en el cliente **y** en el servidor |
-| 3 | Registro válido | Mensaje genérico "revisa tu correo"; llega el correo |
-| 4 | Enlace del correo | Sesión creada, aterriza en `/dashboard` |
-| 5 | Reusar el mismo enlace de confirmación | Redirige a `/auth/error` |
+| 2 | Registro con contraseña débil / correo inválido / claves distintas | Errores por campo en cliente **y** servidor |
+| 3 | Registro válido | Con Resend: mensaje "revisa tu correo". Sin Resend: entra al dashboard |
+| 4 | Enlace de confirmación (con Resend) | `/login?verified=1`; reusar el enlace → `/auth/error` |
+| 5 | Registrar de nuevo el mismo correo | Con Resend: mismo mensaje genérico. Sin Resend: "Ese correo ya está registrado" |
 | 6 | Login con clave incorrecta / correo inexistente | **Mismo** mensaje: "Correo o contraseña incorrectos." |
-| 7 | Login correcto | Va a `/dashboard` (o a `next`) |
-| 8 | Con sesión abierta, visitar `/login` o `/registro` | Redirige a `/dashboard` |
-| 9 | Header | Con sesión: Dashboard + Cerrar sesión; sin sesión: Iniciar sesión + Registrarse |
-| 10 | Editar nombre de perfil (2–60 caracteres) | Se guarda y se refleja en el dashboard |
-| 11 | Recuperar contraseña con correo inexistente | Mismo mensaje que con correo existente |
-| 12 | Flujo de recuperación completo | Cambia la clave y vuelve a `/dashboard?password=updated` |
-| 13 | Cerrar sesión y pulsar "Atrás" | `/dashboard` vuelve a redirigir a `/login` |
-| 14 | `/login?next=//evil.com` tras login | Va a `/dashboard` (no sale del sitio) |
-| 15 | `curl -X POST http://localhost:3000/auth/signout` (sin Origin) | `403` |
-| 16 | Panel de seguridad del dashboard | ✅ "JavaScript NO puede ver el token" |
+| 7 | 6 intentos fallidos seguidos | "Demasiados intentos…" |
+| 8 | Login correcto | `/dashboard` (o la ruta `next`) |
+| 9 | Con sesión, visitar `/login` o `/registro` | Redirige a `/dashboard` |
+| 10 | Header | Con sesión: Dashboard + Cerrar sesión; sin sesión: Iniciar sesión + Registrarse |
+| 11 | Editar nombre (2–60 caracteres) | Se guarda y se refleja en header y dashboard |
+| 12 | Recuperar contraseña con correo inexistente | Mismo mensaje que con correo existente |
+| 13 | Flujo de recuperación completo | Clave cambiada, `/login?reset=1`, sesiones anteriores cerradas |
+| 14 | Reusar el enlace de recuperación | "El enlace es inválido o ya venció" |
+| 15 | Cerrar sesión y pulsar "Atrás" | `/dashboard` vuelve a redirigir a `/login` |
+| 16 | `/login?next=//evil.com` tras login | Va a `/dashboard` |
+| 17 | `curl -X POST http://localhost:3000/auth/signout` | `403` |
+| 18 | Panel de seguridad del dashboard | ✅ "JavaScript NO puede ver el token" |
 
 ---
 
 ## 13. Despliegue en Vercel
 
 1. Sube el código a GitHub (sección 14).
-2. [vercel.com/new](https://vercel.com/new) → **Import** el repositorio (Framework: *Next.js*, detectado automáticamente).
-3. En **Environment Variables** agrega las **tres** variables de la sección 8 (`NEXT_PUBLIC_SITE_URL` = `https://TU-APP.vercel.app`; si aún no conoces el dominio, despliega primero y luego edítala).
-4. **Deploy**. Después de cambiar variables: *Deployments → Redeploy*.
-5. En Supabase → **Authentication → URL Configuration**: pon la **Site URL** de producción y agrega `https://TU-APP.vercel.app/**` a *Redirect URLs*.
-6. Repite el plan de pruebas (sección 12) en producción y confirma la flag **Secure** en las cookies.
+2. [vercel.com/new](https://vercel.com/new) → importa el repositorio (Framework: *Next.js*).
+3. **Environment Variables**: `DATABASE_URL`, `NEXT_PUBLIC_SITE_URL` (= `https://TU-APP.vercel.app`; si aún no conoces el dominio, despliega y edítala después) y, si usas correo, `RESEND_API_KEY` y `EMAIL_FROM`.
+4. **Deploy**. Tras cambiar variables: *Deployments → Redeploy*.
+5. La base de datos ya tiene las tablas (sección 5.2); usa la misma de Neon o crea una *branch* de Neon para producción y ejecuta `db:migrate` contra ella.
+6. Repite el plan de pruebas en producción y confirma la flag **Secure** y el prefijo `__Host-` en la cookie.
 
 ---
 
-## 14. Publicar en GitHub (Debian y Windows, mismos comandos)
+## 14. Publicar en GitHub (Debian y Windows)
 
 ```bash
 git config --global user.name  "Tu Nombre"
@@ -334,12 +315,11 @@ git config --global user.email "tu-correo@ejemplo.com"
 git init -b main
 git add .
 git status                     # verifica que NO aparezca .env.local
-git commit -m "feat: autenticación con cookies httpOnly en Next.js 16 y Supabase"
+git commit -m "feat: autenticación con cookies httpOnly en Next.js 16 y Neon Postgres"
 git remote add origin https://github.com/TU-USUARIO/auth-httponly-nextjs-HJovel-FSJ36.git
 git push -u origin main
 ```
-Para un historial más claro (útil si tus commits son auditados), puedes dividirlo en commits convencionales, por ejemplo:
-`chore: scaffold Next.js 16 con TypeScript` → `feat(supabase): clients server/client/middleware con cookies httpOnly` → `feat(auth): server actions y validación zod` → `feat(proxy): protección de rutas y CSP con nonce` → `feat(ui): páginas de auth y dashboard` → `docs: README y plan de pruebas`.
+Para un historial más claro puedes dividirlo en commits convencionales: `chore: scaffold Next.js 16` → `feat(db): esquema Neon` → `feat(auth): sesiones, hash y cookies httpOnly` → `feat(auth): server actions y validación zod` → `feat(proxy): protección de rutas y CSP con nonce` → `feat(ui): páginas y dashboard` → `docs: README y plan de pruebas`.
 
 ---
 
@@ -347,19 +327,20 @@ Para un historial más claro (útil si tus commits son auditados), puedes dividi
 
 | Síntoma | Causa / solución |
 |---|---|
-| `Falta la variable de entorno NEXT_PUBLIC_SUPABASE_URL` | No existe `.env.local` o no reiniciaste `npm run dev` |
-| Bucle de redirecciones a `/login` | Claves de Supabase incorrectas o Site URL/Redirect URLs mal configuradas |
-| El correo no llega | Límite del SMTP integrado o carpeta de spam; configura SMTP propio |
-| El enlace del correo lleva a `/auth/error` | Plantilla sin `token_hash`, enlace ya usado/vencido, o URL no está en *Redirect URLs* |
-| `permission denied` / perfil vacío | No ejecutaste `supabase/schema.sql` o falta la política RLS |
-| Cookies sin `Secure` en producción | `NEXT_PUBLIC_SITE_URL` apunta a `http://localhost…` en Vercel; debe ser tu URL `https://` |
-| Debian: `node: command not found` tras instalar nvm | `source ~/.bashrc` o abre una terminal nueva |
-| Debian: `EACCES` al instalar paquetes globales | No uses `sudo npm`; con nvm no hace falta |
+| `Falta la variable de entorno DATABASE_URL` | No existe `.env.local` o no reiniciaste `npm run dev` |
+| `db:migrate`: `Falta DATABASE_URL` | Ejecuta el comando en la raíz del proyecto; requiere Node ≥ 20.6 |
+| `password authentication failed` / `ENOTFOUND` | Connection string mal copiada; vuelve a copiarla desde **Connect** (con `?sslmode=require`) |
+| `relation "users" does not exist` | No se crearon las tablas: `npm run db:migrate` o SQL Editor |
+| Primera petición lenta | Neon Free despierta el cómputo; es normal |
+| No llegan correos | Falta `RESEND_API_KEY`, o usas `onboarding@resend.dev` con un destinatario que no es el dueño de la cuenta Resend |
+| Sin Resend no veo el enlace de recuperación | Mira la **terminal donde corre `npm run dev`** (línea `📧 [DEV]`); en producción sin Resend no se registra |
+| Cookie sin `Secure` en producción | `NEXT_PUBLIC_SITE_URL` apunta a `http://localhost…` en Vercel; debe ser tu URL `https://` |
+| Debian: `node: command not found` | `source ~/.bashrc` o abre una terminal nueva |
 | Windows: script `.ps1` bloqueado | `Set-ExecutionPolicy -Scope Process Bypass` |
-| Puerto 3000 ocupado | `npm run dev -- -p 3001` y agrega ese puerto a *Redirect URLs* |
+| Puerto 3000 ocupado | `npm run dev -- -p 3001` y ajusta `NEXT_PUBLIC_SITE_URL` |
 
 ---
 
-## 16. Licencia y créditos
+## 16. Créditos
 
 Proyecto educativo — Kodigo Full Stack Jr 36. Autor: **Hugo Jovel** · [hugojovelweb.tech](https://hugojovelweb.tech/)
