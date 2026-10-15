@@ -1,19 +1,21 @@
 {
   "name": "auth-httponly-nextjs-hjovel-fsj36",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Autenticación segura con cookies httpOnly en Next.js 16 + Supabase (@supabase/ssr), Server Actions y proxy/middleware. Kodigo Full Stack Jr 36.",
-  "engines": { "node": ">=20.9.0" },
+  "description": "Autenticación propia y segura con cookies httpOnly en Next.js 16 + Neon Postgres, Server Actions y proxy. Kodigo Full Stack Jr 36.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.117.3",
+    "@neondatabase/serverless": "^1.2.0",
     "next": "^16.3.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
