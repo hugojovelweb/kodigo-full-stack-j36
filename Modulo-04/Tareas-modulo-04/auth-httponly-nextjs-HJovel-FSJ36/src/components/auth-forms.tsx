@@ -6,7 +6,7 @@ import {
   forgotPasswordAction,
   signInAction,
   signUpAction,
-  updatePasswordAction,
+  resetPasswordAction,
   updateProfileAction,
 } from "@/lib/actions/auth";
 import {
@@ -15,7 +15,7 @@ import {
   profileSchema,
   signInSchema,
   signUpSchema,
-  updatePasswordSchema,
+  resetPasswordSchema,
 } from "@/lib/validations/auth";
 import { Field, FormMessage, SubmitButton } from "./form-parts";
 import { useClientValidation } from "./use-client-validation";
@@ -71,13 +71,15 @@ export function ForgotPasswordForm() {
   );
 }
 
-export function UpdatePasswordForm() {
-  const [state, action] = useActionState(updatePasswordAction, initialState);
-  const { clientErrors, onSubmit } = useClientValidation(updatePasswordSchema);
+export function ResetPasswordForm({ token }: { token: string }) {
+  const [state, action] = useActionState(resetPasswordAction, initialState);
+  const { clientErrors, onSubmit } = useClientValidation(resetPasswordSchema);
   const errors = { ...state.fieldErrors, ...clientErrors };
   return (
     <form action={action} onSubmit={onSubmit} noValidate className="stack">
+      <input type="hidden" name="token" value={token} />
       <FormMessage state={state} />
+      {errors.token && <p className="error" role="alert">{errors.token[0]}</p>}
       <Field name="password" label="Nueva contraseña" type="password" autoComplete="new-password" hint="8+ caracteres, con mayúscula, minúscula y número." errors={errors.password} />
       <Field name="confirmPassword" label="Confirmar nueva contraseña" type="password" autoComplete="new-password" errors={errors.confirmPassword} />
       <SubmitButton pendingText="Guardando…">Actualizar contraseña</SubmitButton>
