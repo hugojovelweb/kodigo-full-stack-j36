@@ -1,9 +1,9 @@
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
 import { signOutAction } from "@/lib/actions/auth";
+import type { SessionUser } from "@/lib/auth/session";
 
 /** Navegación condicional según el estado de autenticación (Server Component). */
-export function SiteHeader({ user }: { user: User | null }) {
+export function SiteHeader({ user }: { user: SessionUser | null }) {
   return (
     <header className="site-header">
       <Link href="/" className="brand">🔐 SecureAuth</Link>
