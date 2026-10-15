@@ -1,18 +1,15 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/dal";
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   return (
     <>
       <section className="hero">
         <h1>Autenticación segura con cookies <span className="accent">httpOnly</span></h1>
         <p className="muted lead">
-          Next.js 16 · Supabase · Server Actions · proxy (middleware) · protección XSS y CSRF.
+          Next.js 16 · Neon Postgres · Server Actions · proxy (middleware) · protección XSS y CSRF.
         </p>
         <div className="row">
           {user ? (
@@ -27,7 +24,7 @@ export default async function HomePage() {
       </section>
       <section className="grid">
         <article className="card"><h2>Cookies httpOnly</h2><p className="muted">El token nunca es accesible desde JavaScript del navegador.</p></article>
-        <article className="card"><h2>Anti-CSRF</h2><p className="muted">sameSite=lax, verificación de Origin y Server Actions.</p></article>
+        <article className="card"><h2>Anti-CSRF</h2><p className="muted">sameSite=lax, verificación de Origin y tokens de un solo uso.</p></article>
         <article className="card"><h2>Anti-XSS</h2><p className="muted">CSP con nonce, escape de React y validación en servidor.</p></article>
       </section>
     </>
