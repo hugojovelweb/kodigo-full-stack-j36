@@ -17,7 +17,7 @@ export function ProductImage({
       <div
         role="img"
         aria-label={alt}
-        className={`flex aspect-[4/3] items-center justify-center bg-slate-100 text-4xl text-slate-300 ${className}`}
+        className={`flex aspect-4/3 items-center justify-center bg-slate-100 text-4xl text-slate-300 ${className}`}
       >
         🛍️
       </div>
@@ -32,7 +32,7 @@ export function ProductImage({
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
-      className={`aspect-[4/3] w-full bg-slate-100 object-cover ${className}`}
+      className={`aspect-4/3 w-full bg-slate-100 object-cover ${className}`}
     />
   );
 }
