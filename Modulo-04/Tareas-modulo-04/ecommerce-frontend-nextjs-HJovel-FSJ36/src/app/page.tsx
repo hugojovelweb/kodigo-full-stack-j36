@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ProductGrid, ProductGridSkeleton } from "@/components/ProductGrid";
 
+export const dynamic = "force-dynamic";
+
+
 export default function Home() {
   return (
     <div className="space-y-10">
