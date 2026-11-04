@@ -1,0 +1,16 @@
+{
+  "name": "api-notas",
+  "version": "1.0.0",
+  "description": "Mini API de notas con persistencia en volumen Docker (ejercicio Kodigo Full Stack Jr 36)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
