@@ -4,15 +4,17 @@
 # Aquí se instalan los paquetes. Esta etapa NO llega a la imagen final;
 # solo se copia de ella lo necesario (node_modules).
 FROM node:22-alpine AS deps
+RUN apk upgrade --no-cache
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # ---------- Etapa 2: runtime (imagen final) ----------
-FROM node:22-alpine AS runtime
+FROM node:22-alpine3.22 AS runtime
+RUN apk upgrade --no-cache
 ENV NODE_ENV=production \
-    PORT=3000 \
-    DATA_DIR=/app/data
+  PORT=3000 \
+  DATA_DIR=/app/data
 WORKDIR /app
 
 COPY --from=deps --chown=node:node /app/node_modules ./node_modules
