@@ -1,0 +1,27 @@
+# Dependencias
+node_modules/
+
+# Datos locales (el volumen de Docker no vive aquí)
+/data/
+
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+*.log
+
+# Sistema y editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Pruebas y builds (por si se agregan después)
+coverage/
+dist/
