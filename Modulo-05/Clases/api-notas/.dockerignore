@@ -1,0 +1,30 @@
+# Dependencias y datos locales
+node_modules
+data
+
+# Git y archivos del propio build
+.git
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+
+# Secretos y configuración local
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+npm-debug.log*
+*.log
+
+# Editor y sistema
+.vscode
+.idea
+.DS_Store
+
+# Pruebas, builds y orquestación (por si se agregan después)
+coverage
+dist
+docker-compose*.yml
