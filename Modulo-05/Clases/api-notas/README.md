@@ -1,5 +1,5 @@
 # API de notas con persistencia (Docker)
-### By Hugo Jovel 
+### By Hugo Jovel Web
 
 Ejercicio práctico — Docker · Kodigo Bootcamp (Full Stack Jr 36).
 
