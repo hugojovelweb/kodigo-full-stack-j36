@@ -1,0 +1,130 @@
+# =============================================================================
+# Ecosistema de producción: Next.js 16 + API Laravel (PHP-FPM + Nginx) + MySQL 8
+# Levantar todo:  docker compose up -d --build
+# Requiere un archivo .env (copiar de .env.example). Ver README.md
+# =============================================================================
+name: ecommerce-docker
+
+services:
+  # ---------------------------------------------------------------------------
+  # Base de datos — MySQL 8.0 (imagen oficial, sin puerto publicado al host)
+  # ---------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?Define MYSQL_DATABASE en .env}
+      MYSQL_USER: ${MYSQL_USER:?Define MYSQL_USER en .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en .env}
+      TZ: ${TZ:-America/El_Salvador}
+    volumes:
+      # Volumen persistente: los datos sobreviven a `docker compose down`
+      - mysql_data:/var/lib/mysql
+      # Scripts .sql/.sh opcionales; solo corren si el volumen está vacío
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend_net
+    healthcheck:
+      # Usa 127.0.0.1 (TCP): durante la inicialización MySQL solo escucha por
+      # socket, así no se marca "healthy" antes de tiempo.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  # Backend — API Laravel (PHP-FPM + Nginx en una sola imagen, multi-stage)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+    image: hjw/ecommerce-backend:1.0.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-EcommerceAPI}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?Define APP_KEY en .env (scripts/gen-secrets.sh)}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      # Drivers sin tablas extra: una API con JWT no necesita sesiones en BD
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env (scripts/gen-secrets.sh)}
+      STRIPE_KEY: ${STRIPE_KEY:-}
+      STRIPE_SECRET: ${STRIPE_SECRET:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      L5_SWAGGER_CONST_HOST: ${L5_SWAGGER_CONST_HOST:-http://localhost:8000/api}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SWAGGER_GENERATE: ${RUN_SWAGGER_GENERATE:-true}
+      TZ: ${TZ:-America/El_Salvador}
+    volumes:
+      # Logs/archivos subidos persisten; la imagen no se modifica en runtime
+      - backend_storage:/var/www/html/storage
+    ports:
+      - "${BACKEND_PORT:-8000}:80"
+    networks:
+      - frontend_net
+      - backend_net
+
+  # ---------------------------------------------------------------------------
+  # Frontend — Next.js 16 (App Router), multi-stage, ejecuta `next start`
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      # Dockerfile (next start) por defecto; Dockerfile.standalone es la variante
+      # opcional más liviana (requiere output: "standalone" en next.config)
+      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
+      args:
+        NODE_VERSION: ${NODE_VERSION:-20}
+        # Solo si tu código del navegador usa NEXT_PUBLIC_* (se incrusta en build)
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8000/api}
+    image: hjw/ecommerce-frontend:1.0.0
+    restart: unless-stopped
+    init: true
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      # Variable de runtime para Server Components / Server Actions:
+      # se resuelve por la red interna de Docker (nombre del servicio).
+      BASE_URL: ${BASE_URL:-http://backend/api}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      STRIPE_PAYMENT_METHOD: ${STRIPE_PAYMENT_METHOD:-pm_card_visa}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - frontend_net
+
+# Dos redes: el frontend NO puede alcanzar la base de datos.
+# backend_net es "internal": sin salida a internet ni al host.
+networks:
+  frontend_net:
+  backend_net:
+    internal: true
+
+volumes:
+  mysql_data:
+  backend_storage:

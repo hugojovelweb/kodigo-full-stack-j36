@@ -1,0 +1,26 @@
+# Evita filtrar secretos y cachés locales a la imagen (y reduce el contexto)
+.git
+.gitignore
+.gitattributes
+.env
+.env.*
+!.env.example
+vendor
+node_modules
+public/hot
+public/storage
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+# Cachés generadas en local (config.php local rompería la config del contenedor)
+bootstrap/cache/*.php
+tests
+.phpunit.cache
+.phpunit.result.cache
+phpunit.xml
+docker-compose*.yml
+.idea
+.vscode
+*.log
+README.md

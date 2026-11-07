@@ -1,0 +1,9 @@
+# Solo para DESARROLLO / depuración. Producción usa únicamente docker-compose.yml
+# Uso:  docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+#
+# Publica MySQL SOLO en 127.0.0.1 y en el puerto 3307 para no chocar con el
+# MariaDB/MySQL que ya tengas instalado en el equipo (puerto 3306).
+services:
+  db:
+    ports:
+      - "127.0.0.1:${DB_HOST_PORT:-3307}:3306"

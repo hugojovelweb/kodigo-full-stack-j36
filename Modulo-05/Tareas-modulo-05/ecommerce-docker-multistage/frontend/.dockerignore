@@ -1,0 +1,23 @@
+# Mantiene el contexto de build pequeño y evita filtrar secretos a la imagen
+node_modules
+.next
+out
+coverage
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+npm-debug.log*
+*.log
+.vscode
+.idea
+.DS_Store
+README.md
+docs
+*.pdf
+AGENTS.md
+tsconfig.tsbuildinfo
