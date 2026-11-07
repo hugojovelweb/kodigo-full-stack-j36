@@ -1,5 +1,5 @@
 # Ingeniería de Imágenes Eficientes — Next.js 16 + Laravel + MySQL con Docker multi-stage
-### By Hugo Ernesto Jovel
+**Autor:** Hugo Ernesto Jovel · Kodigo Full Stack Jr 36
 
 Actividad evaluada · Kodigo Full Stack Jr 36 · *Refactorización Multi-stage y Optimización de Capas en Docker*
 
