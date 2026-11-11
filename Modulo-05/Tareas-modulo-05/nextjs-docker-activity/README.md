@@ -1,4 +1,5 @@
 # 🐳 Next.js + Docker — Contenerización de aplicaciones web
+# Hugo Ernesto Jovel.
 
 Actividad práctica individual · **Kodigo Full Stack Jr 36**
 
