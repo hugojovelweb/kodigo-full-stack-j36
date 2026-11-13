@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------------
+# .dockerignore · excluye del contexto de build todo lo que no debe entrar
+# en la imagen (menos peso, builds más rápidos y sin filtrar secretos)
+# ---------------------------------------------------------------------------
+
+# Dependencias (se instalan dentro de la imagen con `npm ci`)
+node_modules
+.pnp
+.pnp.*
+.yarn
+
+# Salida de compilación (se genera dentro de la imagen con `next build`)
+.next
+out
+build
+dist
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Variables de entorno y secretos (nunca dentro de la imagen)
+.env
+.env.*
+*.pem
+
+# Control de versiones
+.git
+.gitignore
+.gitattributes
+
+# Docker (no hace falta dentro de la imagen)
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Logs y archivos temporales
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+*.tmp
+*.temp
+.cache
+tmp
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+
+# Documentación (no se necesita para ejecutar la app)
+README.md
+*.md
+
+# Vercel
+.vercel
