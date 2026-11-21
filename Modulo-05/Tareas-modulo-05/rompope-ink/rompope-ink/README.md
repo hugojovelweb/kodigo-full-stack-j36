@@ -1,5 +1,5 @@
 # Rompope Ink — Landing de estudio de tatuajes
-### Hugo Jovel Web
+### Hugo Jovel Web (Material inspirado en clase y futuro proyecto)
 
 > Proyecto **Next.js 15** de la semana de **Vibe Coding** · Kodigo Full Stack Jr 36 · Actividad: despliegue en AWS.
 
