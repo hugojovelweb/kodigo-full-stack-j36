@@ -1,0 +1,18 @@
+# docker compose up --build   →   http://localhost:3000
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_STUDIO_NAME: ${NEXT_PUBLIC_STUDIO_NAME:-Rompope Ink}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-50300000000}
+    image: rompope-ink:latest
+    container_name: rompope-ink
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_STUDIO_NAME: ${NEXT_PUBLIC_STUDIO_NAME:-Rompope Ink}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-50300000000}
+    restart: unless-stopped
