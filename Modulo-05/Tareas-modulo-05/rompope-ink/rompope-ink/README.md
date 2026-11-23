@@ -5,7 +5,7 @@
 
 ## 🌐 Despliegue público (AWS Amplify)
 
-**URL:**  ← URL real de Amplify
+**URL:** https://main.d2krl816vj19m1.amplifyapp.com/ ← URL real de Amplify
 
 Comprobación del servidor y variables en producción: `<URL>/api/health`
 
