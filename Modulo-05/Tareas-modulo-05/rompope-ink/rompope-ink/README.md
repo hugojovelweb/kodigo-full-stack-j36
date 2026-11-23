@@ -5,9 +5,21 @@
 
 ## 🌐 Despliegue público (AWS Amplify)
 
-**URL:** https://main.XXXXXXXXXXXX.amplifyapp.com  ← reemplazar por la URL real de Amplify
+**URL:**  ← URL real de Amplify
 
 Comprobación del servidor y variables en producción: `<URL>/api/health`
+
+**Futuro Proyecto Real** 
+
+- A- Este proyecto nace como una actividad académica de la semana de Vibe Coding (Kodigo Full Stack Jr 36), pero está pensado desde el inicio como la base de un proyecto real en producción.
+
+- B- La landing está inspirada en hechos reales: el trabajo de un tatuador nacional (un amigo cercano), para quien desarrollaré su sitio oficial. Por eso el contenido, la estructura y la identidad visual parten de un caso concreto y no de una maqueta genérica.
+
+- C- Estado actual: demo funcional desplegada en AWS Amplify (URL arriba), con datos de ejemplo.
+Siguiente fase: sustituir el contenido de muestra por el contenido real del estudio, ajustar dominio propio y publicar en producción como sitio oficial del tatuador.
+
+Así, lo aprendido en clase (Next.js 15, despliegue en AWS) se convierte en un entregable real para un cliente.
+
 
 ## Qué incluye
 
