@@ -1,0 +1,4 @@
+.env
+node_modules/
+snapshot.sql
+snapshot_db.sql
