@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Paleta: carbon suave (no negro puro) + lima acida. Pensada para pantalla de celular. */
+@theme {
+  --color-fondo: #121316;
+  --color-superficie: #1b1d21;
+  --color-superficie-2: #24272c;
+  --color-borde: #2e3238;
+  --color-texto: #f1f1ec;
+  --color-tenue: #9ea3ab;
+  --color-lima: #c8f135;
+  --color-lima-oscuro: #a8d11a;
+  --color-error: #ff6b6b;
+  --font-display: "Avenir Next", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html { scroll-behavior: smooth; color-scheme: dark; }
+body { background: var(--color-fondo); color: var(--color-texto); font-family: var(--font-sans); }
+::selection { background: var(--color-lima); color: #121316; }
+:focus-visible { outline: 3px solid var(--color-lima); outline-offset: 2px; }
+
+@keyframes aparecer { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.aparecer { animation: aparecer .35s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, .aparecer { animation: none !important; transition: none !important; }
+}
