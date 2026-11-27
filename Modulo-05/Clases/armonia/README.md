@@ -1,4 +1,5 @@
 # Armonía · Landing de una academia de música
+### By Hugo Jovel Web
 
 Ejercicio en parejas · Kodigo Full Stack Jr 36 · Módulo 5 · Semana 21 (vibe coding con Next.js y Claude).
 
