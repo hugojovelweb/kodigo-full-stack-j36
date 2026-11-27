@@ -1,4 +1,5 @@
 # Guía paso a paso · Neon + Debian XFCE 13 + Windows + Vercel
+# By Hugo Jovel Web
 
 Cierre de la actividad: **jueves 26 nov 2026, 23:59**. Orden recomendado: 1 → 2 → 3 → 4 → 5 → 6 → 7.
 

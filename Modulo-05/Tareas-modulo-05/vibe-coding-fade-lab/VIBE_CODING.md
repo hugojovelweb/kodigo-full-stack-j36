@@ -1,4 +1,5 @@
 # VIBE_CODING.md · Proceso de desarrollo guiado por IA
+# By Hugo Jovel Web
 
 > **Borrador editable.** Refleja el flujo real de construcción con Claude. Antes de entregar, ajusta los prompts a los
 > que tú escribiste y agrega tus capturas.

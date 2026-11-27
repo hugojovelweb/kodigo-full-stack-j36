@@ -1,10 +1,11 @@
 # Fade Lab · MVP de reservas para barberías, peluquerías y salones
+# By Hugo Jovel Web
 
 Aplicación web **funcional** de reservas de citas con **Next.js 16 + TypeScript + Tailwind CSS 4 + Neon Postgres**.
 Negocio y datos **ficticios**. Hecha con *Vibe Coding* para la actividad evaluada del bootcamp **Kodigo Full Stack Jr 36**
 y diseñada como **semilla** de una micro app para barberías, peluquerías y salones.
 
-- 🌐 **Producción:** `https://TU-PROYECTO.vercel.app`  ← _reemplaza con tu URL de Vercel_
+- 🌐 **Producción:** `https://fade-lab-eight.vercel.app/`  ← _reemplaza con tu URL de Vercel_
 - 🧠 **Proceso de Vibe Coding:** [`VIBE_CODING.md`](./VIBE_CODING.md)
 - 🛠️ **Guía paso a paso (Neon, Debian, Windows, Vercel):** [`docs/GUIA-NEON-DEBIAN-WINDOWS.md`](./docs/GUIA-NEON-DEBIAN-WINDOWS.md)
 - 📸 **Evidencias y manual de la micro app (capturas, Word y PDF):** [`evidencias/`](./evidencias/) · [PDF](./evidencias/Evidencias-Fade-Lab.pdf)
